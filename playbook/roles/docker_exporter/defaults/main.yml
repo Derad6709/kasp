@@ -1,0 +1,10 @@
+# filepath: playbook/roles/docker_exporter/defaults/main.yml
+---
+docker_build_context_path: "{{ playbook_dir }}/files"
+docker_image_name: "host-metrics-exporter"
+docker_image_tag: "latest"
+container_name: "host_metrics_exporter_instance"
+host_port: 8080
+container_port: 8080
+container_restart_policy: "unless-stopped"
+docker_module_pip_virtualenv: "/opt/ansible_docker_venv"

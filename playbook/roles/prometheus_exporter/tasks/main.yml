@@ -1,0 +1,45 @@
+# roles/prometheus_exporter/tasks/main.yml
+---
+- name: Ensure pkgx is installed
+  shell: |
+    brew install pkgx || curl https://pkgx.sh | sh
+  args:
+    creates: "{{ ansible_env.HOME }}/.pkgx/pkgx.sh"
+  become: false
+
+- name: Ensure Python and pip dependencies are installed via pkgx
+  ansible.builtin.shell: |
+    pkgx +python@{{ prometheus_exporter_python_version }} uv pip install {{ prometheus_exporter_required_python_packages | join(' ') }} --system
+  register: pkgx_deps_result
+  changed_when: "'Installed' in pkgx_deps_result.stdout or 'Audited' not in pkgx_deps_result.stderr"
+  become: false
+
+- name: Copy exporter script to target host
+  ansible.builtin.copy:
+    src: "{{ exporter_script_source_path }}"
+    dest: "{{ prometheus_exporter_dest_path }}"
+    owner: root
+    group: root
+    mode: "0755"
+  notify: Restart exporter service
+  become: true
+
+- name: Create systemd unit file from template
+  ansible.builtin.template:
+    src: host_metrics_exporter.service.j2
+    dest: "{{ prometheus_exporter_systemd_unit_path }}"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload systemd and Restart exporter service
+  become: true
+
+- name: Ensure systemd is reloaded if template changed (flushes handlers)
+  ansible.builtin.meta: flush_handlers
+
+- name: Ensure exporter service is enabled and started
+  ansible.builtin.systemd:
+    name: "{{ prometheus_exporter_service_name }}"
+    enabled: true
+    state: started
+  become: true

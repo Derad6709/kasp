@@ -1,0 +1,60 @@
+# filepath: playbook/roles/docker_exporter/tasks/main.yml
+---
+- name: Ensure snapd package is installed
+  ansible.builtin.package:
+    name: snapd
+    state: present
+  become: true
+  register: snapd_install_result
+
+- name: Ensure snapd socket is enabled and started
+  ansible.builtin.systemd:
+    name: snapd.socket
+    enabled: true
+    state: started
+  become: true
+
+- name: Refresh snapd
+  community.general.snap:
+    name:
+      - snapd
+    state: present
+  become: true
+
+- name: Install Docker snap package
+  community.general.snap:
+    name:
+      - docker
+    state: present
+  become: true
+
+- name: Ensure required Python libraries for Docker module are installed on the target host
+  ansible.builtin.pip:
+    name:
+      - docker
+      - requests
+    state: present
+    virtualenv: true
+    virtualenv_site_packages: true
+  become: true
+
+- name: Build the Docker image from the Dockerfile
+  community.docker.docker_image:
+    name: "{{ docker_image_name }}:{{ docker_image_tag }}"
+    build:
+      path: "{{ docker_build_context_path }}"
+    source: build
+    state: present
+  become: true
+  register: image_build_result
+
+- name: Run the host metrics exporter container
+  community.docker.docker_container:
+    name: "{{ container_name }}"
+    image: "{{ docker_image_name }}:{{ docker_image_tag }}"
+    state: started
+    restart_policy: "{{ container_restart_policy }}"
+    ports:
+      - "{{ host_port }}:{{ container_port }}"
+  become: true
+  register: container_run_result

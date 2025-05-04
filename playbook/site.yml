@@ -1,0 +1,18 @@
+- name: Deploy and manage Prometheus host metrics exporter
+  hosts: all
+  vars:
+    prometheus_exporter_script_name: host_metrics_exporter.py
+    prometheus_exporter_dest_path: /opt/{{ prometheus_exporter_script_name }}
+    prometheus_exporter_service_name: host_metrics_exporter.service
+    prometheus_exporter_systemd_unit_path: /etc/systemd/system/{{ prometheus_exporter_service_name }}
+    prometheus_exporter_python_version: "3.13.3"
+    exporter_script_source_path: "{{ playbook_dir }}/files/{{ prometheus_exporter_script_name }}"
+    prometheus_exporter_required_python_packages:
+      - prometheus_client
+      - psutil
+
+  roles:
+    - role: prometheus_exporter
+      tags: bare_metal
+    - role: docker_exporter
+      tags: docker

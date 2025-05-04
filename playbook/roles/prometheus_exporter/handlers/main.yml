@@ -1,0 +1,16 @@
+# roles/prometheus_exporter/handlers/main.yml
+---
+- name: Reload systemd and Restart exporter service
+  listen: Reload systemd and Restart exporter service
+  ansible.builtin.systemd:
+    daemon_reload: true
+  notify: Restart exporter service
+  become: true
+
+- name: Restart exporter service
+  listen: Restart exporter service
+  ansible.builtin.systemd:
+    name: "{{ prometheus_exporter_service_name }}"
+    state: restarted
+    enabled: true
+  become: true
