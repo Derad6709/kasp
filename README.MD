@@ -74,7 +74,7 @@ VAGRANT_ANSIBLE_TAGS=bare_metal vagrant up
 # For Docker-based deployment
 VAGRANT_ANSIBLE_TAGS=docker vagrant up
 
-# No tags specified will run docker methods
+# No tags specified will run docker method
 vagrant up
 ```
 
