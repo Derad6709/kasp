@@ -24,7 +24,7 @@ The exporter ([`playbook/files/host_metrics_exporter.py`](playbook/files/host_me
 *   SSH access configured for Ansible.
 *   User with `sudo` privileges (most tasks use `become: true`).
 *   Python 3 installed (for Ansible modules).
-*   `python3-pip`, `python3-packaging`, `python3-virtualenv` (used by the `ansible.builtin.pip` module, for the Docker role's dependency installation).
+*   `pipx` (used by the `community.general.pipx` module, for the Docker role's dependency installation).
 *   Internet access (for downloading packages).
 *   **For Bare Metal method:** `curl` or `brew` (to install `pkgx`).
 *   **For Docker method:** `snapd` service enabled and running (the playbook attempts to install/enable it).
@@ -39,24 +39,46 @@ The exporter ([`playbook/files/host_metrics_exporter.py`](playbook/files/host_me
 
 ## Usage
 
-Run the playbook from the root directory of the project. Use tags to select the desired deployment method.
+### Method 1: Using Ansible directly
+You can run the playbook with different tags to deploy the host metrics exporter:
 
-*   **Deploy using Bare Metal method only:**
-    ```bash
-    ansible-playbook -i inventory.ini playbook/site.yml --tags bare_metal
-    ```
+```bash
+# For bare metal deployment
+ansible-playbook -i inventory.ini playbook/site.yml --tags bare_metal
 
-*   **Deploy using Docker method only:**
-    ```bash
-    ansible-playbook -i inventory.ini playbook/site.yml --tags docker
-    ```
+# For Docker-based deployment
+ansible-playbook -i inventory.ini playbook/site.yml --tags docker
 
-*   **Deploy using both methods (on the same host, ports might conflict if defaults aren't changed):**
-    ```bash
-    ansible-playbook -i inventory.ini playbook/site.yml --tags bare_metal,docker
-    # or simply:
-    ansible-playbook -i inventory.ini playbook/site.yml
-    ```
+# For both methods
+ansible-playbook -i inventory.ini playbook/site.yml
+```
+
+### Method 2: Using Vagrant
+Alternatively, you can use Vagrant to automatically provision a VM and run the Ansible playbook:
+
+#### Installing Vagrant
+Before using Vagrant, you need to install it first:
+
+- **Official source**: Download and install from the [official Vagrant website](https://developer.hashicorp.com/vagrant/install)
+- **Alternative source**: Download from [Yandex Cloud mirror](https://hashicorp-releases.yandexcloud.net/vagrant/)
+
+Follow the installation instructions for your specific operating system.
+
+#### Running with Vagrant
+Once Vagrant is installed, you can use it to automatically provision a VM and run the Ansible playbook:
+
+```bash
+# For bare metal deployment
+VAGRANT_ANSIBLE_TAGS=bare_metal vagrant up
+
+# For Docker-based deployment
+VAGRANT_ANSIBLE_TAGS=docker vagrant up
+
+# No tags specified will run both methods
+vagrant up
+```
+
+This method automatically sets up a VM with the required environment and runs the Ansible playbook with your specified tags.
 
 ## Notes
 

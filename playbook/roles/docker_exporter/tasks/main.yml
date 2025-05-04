@@ -28,15 +28,16 @@
     state: present
   become: true
 
-- name: Ensure required Python libraries for Docker module are installed on the target host
-  ansible.builtin.pip:
-    name:
+- name: Install multiple packages from list
+  vars:
+    pipx_packages:
       - docker
       - requests
-    state: present
-    virtualenv: true
-    virtualenv_site_packages: true
-  become: true
+  community.general.pipx:
+    name: "{{ item }}"
+    state: latest
+    install_deps: true
+  with_items: "{{ pipx_packages }}"
 
 - name: Build the Docker image from the Dockerfile
   community.docker.docker_image:
